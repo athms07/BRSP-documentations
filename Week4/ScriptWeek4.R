@@ -31,7 +31,7 @@ BiocManager::install(c("GEOquery", "limma"), ask = FALSE, update = FALSE)
 
 #Install annotation package sesuai platform
 #GPL96 = Affymetrix Human Genome U133A 
-BiocManager::install("hgu133a.db", ask = FALSE, update = FALSE)
+BiocManager::install("clariomdhumanprobeset.db", ask = FALSE, update = FALSE)
 
 #3. Install paket CRAN untuk visualisasi dan manipulasi data 
 #phetmap: heatmap ekspresi gen 
@@ -52,7 +52,7 @@ library(limma)
 library(pheatmap)
 library(ggplot2)
 library(dplyr)
-library(hgu133a.db)
+library(clariomdhumanprobeset.db)
 library(AnnotationDbi)
 library(umap)
 
@@ -64,7 +64,7 @@ library(umap)
 #GSEMatrix = TRUE -> data diambil dalam format ExpressionSet
 #AnnotGPL  = TRUE -> anotasi gen (Gene Symbol) ikut diunduh
 
-gset <- getGEO("GSE10072", GSEMatrix = TRUE, AnnotGPL = TRUE)[[1]]
+gset <- getGEO("GSE299397", GSEMatrix = TRUE, AnnotGPL = TRUE)[[1]]
 
 #ExpressionSet berisi:
 # - exprs() : matriks ekspresi gen
@@ -93,7 +93,7 @@ qx <- as.numeric(quantile(ex, c(0, 0.25, 0.5, 0.75, 0.99, 1), na.rm = TRUE))
 #LogTransform adalah variabel logika (TRUE / FALSE)
 #Operator logika:
 #>  : lebih besar dari
-#| | : OR (atau)
+#|| : OR (atau)
 #&& : AND (dan)
 LogTransform <- (qx[5] > 100) ||  (qx[6] - qx[1] > 50 && qx[2] > 0)
 
@@ -121,8 +121,8 @@ groups <- make.names(group_info)
 gset$group <- factor(groups)
 
 #levels(): melihat kategori unik dalam faktor
-nama_grup <- levels(gset$group)
-print(nama_grup)
+group_name <- levels(gset$group)
+print(group_name)
 
 #PART F. DESIGN MATRIX (KERANGKA STATISTIK) 
 
@@ -135,11 +135,11 @@ design <- model.matrix(~0 + gset$group)
 colnames(design) <- levels(gset$group)
 
 #Menentukan perbandingan biologis
-grup_kanker <- nama_grup[1]
-grup_normal <- nama_grup[2]
+treated <- group_name[1][4]
+untreated <- group_name[5]
 
-contrast_formula <- paste(grup_kanker, "-", grup_normal)
-print(paste("Kontras yang dianalisis:", contrast_formula))
+contrast_formula <- paste(treated, "-", untreated)
+print(paste("analysed contrast:", contrast_formula))
 
 #PART G. ANALISIS DIFFERENTIAL EXPRESSION (LIMMA)
 
